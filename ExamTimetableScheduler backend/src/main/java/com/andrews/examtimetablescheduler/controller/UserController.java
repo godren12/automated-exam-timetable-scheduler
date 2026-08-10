@@ -14,19 +14,37 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserHandler handler;
 
+    public record SafeUser(Long id, String email) {
+        static SafeUser from(User u) {
+            return new SafeUser(u.getId(), u.getEmail());
+        }
+    }
+
     @GetMapping("/find")
-    public ResponseEntity<User> get(@RequestParam String email) {
-        return handler.find(email).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<SafeUser> get(@RequestParam String email) {
+        return handler.find(email)
+                .map(u -> ResponseEntity.ok(SafeUser.from(u)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<?> add(@RequestBody User u) {
         try {
             DBError status = handler.addUser(u);
+            if (status == DBError.USER_EXISTS) {
+                return ResponseEntity.badRequest().body("A user with this email already exists.");
+            }
             return ResponseEntity.ok(status);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+        return handler.login(req.email(), req.password())
+                .<ResponseEntity<?>>map(u -> ResponseEntity.ok(SafeUser.from(u)))
+                .orElse(ResponseEntity.status(401).body("Invalid email or password."));
     }
 
     @DeleteMapping("/{id}")
@@ -38,8 +56,5 @@ public class UserController {
             return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/new")
-    public ResponseEntity<User> create(@RequestParam String email, @RequestParam String password) {
-        return ResponseEntity.ok().body(new User(handler.getIdCounter(), email, password));
-    }
+    public record LoginRequest(String email, String password) {}
 }

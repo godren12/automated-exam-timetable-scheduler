@@ -1,6 +1,7 @@
 package com.andrews.examtimetablescheduler.db;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
@@ -15,6 +16,7 @@ import java.util.Optional;
 public class UserHandler {
     private final File db = new File("users.json");
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private List<User> users = new ArrayList<>();
     private long idCounter = 0;
 
@@ -35,13 +37,27 @@ public class UserHandler {
         return users.stream().filter(user -> user.getId() == id).findFirst();
     }
 
-    public DBError addUser(User u) {
-        if (find(u.getEmail()).isPresent())
-            return DBError.USER_EXISTS;
+   public DBError addUser(User u) {
+    if (find(u.getEmail()).isPresent())
+        return DBError.USER_EXISTS;
 
-        users.add(u);
-        saveDB();
-        return DBError.SUCCESS;
+    u.setId(getIdCounter());
+    u.setPassword(passwordEncoder.encode(u.getPassword()));
+    users.add(u);
+    saveDB();
+    return DBError.SUCCESS;
+}
+
+    public Optional<User> login(String email, String rawPassword) {
+        Optional<User> optionalUser = find(email);
+        if (optionalUser.isEmpty())
+            return Optional.empty();
+
+        User u = optionalUser.get();
+        if (passwordEncoder.matches(rawPassword, u.getPassword()))
+            return Optional.of(u);
+
+        return Optional.empty();
     }
 
     public DBError removeUserByEmail(String email) {
@@ -68,16 +84,21 @@ public class UserHandler {
         }
     }
 
-    public synchronized void loadDB() {
-        if (!db.exists())
-            saveDB();
+   public synchronized void loadDB() {
+    if (!db.exists())
+        saveDB();
 
-        try {
-            users = objectMapper.readValue(db, new TypeReference<List<User>>() {});
-        } catch (JacksonException e) {
-            System.err.println("Got Jackson exception: " + e.getMessage() + "\nThis error requires immediate attention.");
-        }
+    try {
+        users = objectMapper.readValue(db, new TypeReference<List<User>>() {});
+        idCounter = users.stream()
+                .filter(u -> u.getId() != null)
+                .mapToLong(User::getId)
+                .max()
+                .orElse(-1) + 1;
+    } catch (JacksonException e) {
+        System.err.println("Got Jackson exception: " + e.getMessage() + "\nThis error requires immediate attention.");
     }
+}
 
     public synchronized void saveDB() {
         try {

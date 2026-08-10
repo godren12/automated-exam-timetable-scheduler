@@ -1,20 +1,20 @@
 package com.andrews.examtimetablescheduler.db;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class User {
-    private long id;
+    private Long id;
     private String email;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    public User(long id, String email, String password) {
+    public User() {
+    }
+
+    public User(Long id, String email, String password) {
         this.id = id;
         this.email = email;
         this.password = password;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
@@ -26,7 +26,7 @@ public class User {
         return password;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

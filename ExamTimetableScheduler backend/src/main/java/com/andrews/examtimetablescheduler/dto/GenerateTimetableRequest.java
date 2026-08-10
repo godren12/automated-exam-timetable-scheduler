@@ -6,4 +6,5 @@ import lombok.Data;
 public class GenerateTimetableRequest {
     private Long deptId;
     private int level;
+    private Long examPeriodId;
 }

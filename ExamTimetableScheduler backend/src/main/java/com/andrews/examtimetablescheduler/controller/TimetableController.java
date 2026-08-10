@@ -18,7 +18,7 @@ public class TimetableController {
 
     @PostMapping("/generate")
     public String generate(@RequestBody GenerateTimetableRequest req) {
-        return timetableService.generateTimetable(req.getDeptId(), req.getLevel());
+        return timetableService.generateTimetable(req.getDeptId(), req.getLevel(), req.getExamPeriodId());
     }
 
     @GetMapping("/{deptId}/{level}")
