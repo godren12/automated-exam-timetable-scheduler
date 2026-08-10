@@ -1,30 +1,79 @@
+"use client";
+
 import Layout from "@/components/Layout";
-import { BookOpen, Building2, Users, GraduationCap, Plus } from "lucide-react";
+import { BookOpen, Building2, Users, DoorOpen, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getCourses, getDepartments, getLecturers, getRooms } from "@/lib/api";
+import Link from "next/link";
 
 export default function Dashboard() {
+  const [counts, setCounts] = useState({ courses: 0, departments: 0, lecturers: 0, rooms: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    Promise.all([getCourses(), getDepartments(), getLecturers(), getRooms()])
+      .then(([courses, departments, lecturers, rooms]) => {
+        setCounts({
+          courses: courses.length,
+          departments: departments.length,
+          lecturers: lecturers.length,
+          rooms: rooms.length,
+        });
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load dashboard data"))
+      .finally(() => setLoading(false));
+  }, []);
+
   const stats = [
-    {label: "Courses", value: 124, icon: BookOpen, bg: "#d1fae5"},
-    {label: "Departments", value: 8, icon: Building2, bg: "#ffedd5"},
-    {label: "Lecturers", value: 56, icon: Users, bg: "#dbeafe"},
-    {label: "Students", value: "1,842", icon: GraduationCap, bg: "#f3e8ff"},
-  ]
+    { label: "Courses", value: counts.courses, icon: BookOpen, bg: "#d1fae5" },
+    { label: "Departments", value: counts.departments, icon: Building2, bg: "#ffedd5" },
+    { label: "Lecturers", value: counts.lecturers, icon: Users, bg: "#dbeafe" },
+    { label: "Rooms", value: counts.rooms, icon: DoorOpen, bg: "#f3e8ff" },
+  ];
+
+  const quickActions = [
+    { label: "Add Course", href: "/courses" },
+    { label: "Add Lecturer", href: "/lecturers" },
+    { label: "Add Room", href: "/rooms" },
+    { label: "Generate Timetable", href: "/generate" },
+  ];
+
   return (
     <Layout>
-      <h1 style={{fontSize: '24px', fontWeight: 700, marginBottom: '20px'}}>Dashboard</h1>
-      <div className="grid-4" style={{marginBottom: '20px'}}>
-        {stats.map(s => (<div key={s.label} className="card stat"><div className="stat-icon" style={{background: s.bg}}><s.icon color="var(--primary)" size={20} /></div><div><div style={{color: 'var(--muted)', fontSize: '14px'}}>{s.label}</div><div style={{fontSize: '24px', fontWeight: 700}}>{s.value}</div></div></div>))}
+      <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "20px" }}>Dashboard</h1>
+
+      {error && (
+        <div className="card" style={{ marginBottom: "16px", color: "#dc2626", background: "#fef2f2" }}>
+          {error}
+        </div>
+      )}
+
+      <div className="grid-4" style={{ marginBottom: "20px" }}>
+        {stats.map((s) => (
+          <div key={s.label} className="card stat">
+            <div className="stat-icon" style={{ background: s.bg }}>
+              <s.icon color="var(--primary)" size={20} />
+            </div>
+            <div>
+              <div style={{ color: "var(--muted)", fontSize: "14px" }}>{s.label}</div>
+              <div style={{ fontSize: "24px", fontWeight: 700 }}>{loading ? "—" : s.value}</div>
+            </div>
+          </div>
+        ))}
       </div>
-      <div className="card" style={{marginBottom: '20px'}}>
-        <h2 style={{fontWeight: 700, marginBottom: '16px'}}>Quick Actions</h2>
-        <div style={{display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px'}}>{["Add Course", "Add Lecturer", "Add Room", "Generate Timetable"].map(a => <button key={a} className="btn-outline"><Plus size={16} />{a}</button>)}</div>
-      </div>
+
       <div className="card">
-        <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '16px'}}><h2 style={{fontWeight: 700}}>Recent Timetables</h2><a style={{color: 'var(--primary)', cursor: 'pointer'}}>View All</a></div>
-        <table><thead><tr><th>#</th><th>Academic Year</th><th>Semester</th><th>Generated On</th><th>Status</th><th>Action</th></tr></thead><tbody>
-          <tr><td>1</td><td>2024/2025</td><td>Second Semester</td><td>15 May 2025, 10:30 AM</td><td><span className="badge badge-green">Completed</span></td><td><a style={{color: 'var(--primary)', cursor: 'pointer'}}>View</a></td></tr>
-          <tr><td>2</td><td>2024/2025</td><td>First Semester</td><td>10 Feb 2025, 09:15 AM</td><td><span className="badge badge-green">Completed</span></td><td><a style={{color: 'var(--primary)', cursor: 'pointer'}}>View</a></td></tr>
-        </tbody></table>
+        <h2 style={{ fontWeight: 700, marginBottom: "16px" }}>Quick Actions</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "12px" }}>
+          {quickActions.map((a) => (
+            <Link key={a.label} href={a.href} className="btn-outline" style={{ textDecoration: "none" }}>
+              <Plus size={16} />
+              {a.label}
+            </Link>
+          ))}
+        </div>
       </div>
     </Layout>
-  )
+  );
 }

@@ -2,28 +2,37 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { login } from "@/lib/api";
 import Link from "next/link";
+import { signup } from "@/lib/api";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
+const [confirmPassword, setConfirmPassword] = useState("");
 const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setSubmitting(true);
 
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      const user = await login(email, password);
-      localStorage.setItem("user", JSON.stringify(user));
-      router.push("/dashboard");
+      await signup(email, password);
+      router.push("/?signedUp=true");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid email or password.");
+      setError(err instanceof Error ? err.message : "Failed to create account.");
     } finally {
       setSubmitting(false);
     }
@@ -36,10 +45,12 @@ const [showPassword, setShowPassword] = useState(false);
         <div className="login-box">
           <div style={{ textAlign: "center", marginBottom: "24px" }}>
             <CalendarDays size={40} color="var(--primary)" />
-            <h1 style={{ fontSize: "24px", marginTop: "10px" }}>Automated Timetable Scheduler</h1>
-            <p style={{ color: "var(--muted)", fontSize: "14px" }}>Sign in to your account</p>
+            <h1 style={{ fontSize: "24px", marginTop: "10px" }}>Create Admin Account</h1>
+            <p style={{ color: "var(--muted)", fontSize: "14px" }}>
+              Automated Exam Timetable Scheduler
+            </p>
           </div>
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleSignup}>
             <div className="form-group">
               <label className="label">
                 <Mail size={16} /> Email Address
@@ -53,7 +64,7 @@ const [showPassword, setShowPassword] = useState(false);
                 required
               />
             </div>
-           <div className="form-group">
+            <div className="form-group">
   <label className="label">
     <Lock size={16} /> Password
   </label>
@@ -63,7 +74,42 @@ const [showPassword, setShowPassword] = useState(false);
       className="input"
       value={password}
       onChange={(e) => setPassword(e.target.value)}
-      placeholder="Enter your password"
+      placeholder="At least 6 characters"
+      required
+      style={{ paddingRight: "40px" }}
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      style={{
+        position: "absolute",
+        right: "10px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        color: "var(--muted)",
+        display: "flex",
+        alignItems: "center",
+      }}
+      tabIndex={-1}
+    >
+      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+    </button>
+  </div>
+</div>
+<div className="form-group">
+  <label className="label">
+    <Lock size={16} /> Confirm Password
+  </label>
+  <div style={{ position: "relative" }}>
+    <input
+      type={showPassword ? "text" : "password"}
+      className="input"
+      value={confirmPassword}
+      onChange={(e) => setConfirmPassword(e.target.value)}
+      placeholder="Re-enter your password"
       required
       style={{ paddingRight: "40px" }}
     />
@@ -110,15 +156,12 @@ const [showPassword, setShowPassword] = useState(false);
               style={{ width: "100%", justifyContent: "center" }}
               disabled={submitting}
             >
-              {submitting ? "Signing in..." : "Sign In"}
+              {submitting ? "Creating account..." : "Create Account"}
             </button>
           </form>
-         <p style={{ textAlign: "center", fontSize: "14px", color: "var(--muted)", marginTop: "20px" }}>
-  Don&apos;t have an account? <Link href="/signup" style={{ color: "var(--primary)" }}>Sign up</Link>
-</p>
-<p style={{ textAlign: "center", fontSize: "12px", color: "var(--muted)", marginTop: "12px" }}>
-  © 2026 Automated Timetable Scheduler
-</p>
+          <p style={{ textAlign: "center", fontSize: "14px", color: "var(--muted)", marginTop: "20px" }}>
+            Already have an account? <Link href="/" style={{ color: "var(--primary)" }}>Sign in</Link>
+          </p>
         </div>
       </div>
     </div>

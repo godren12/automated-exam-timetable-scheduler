@@ -1,32 +1,146 @@
+"use client";
+
 import Layout from "@/components/Layout";
-import { AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getDepartments, getTimetable } from "@/lib/api";
+
+type Department = { id: number; name: string };
+
+type ExamSlot = {
+  id: number;
+  course: { courseCode: string; courseName: string; studentCount: number };
+  status: string;
+  conflictReason?: string;
+};
 
 export default function Conflicts() {
-  const conflicts = [
-    {type: "Venue Overbook", desc: "3 courses scheduled in LT1 at 8:00 AM 19 May", rule: "Max 2 courses per venue"},
-    {type: "Same Dept Sharing", desc: "CS301 and CS302 in LT2 at 10:30 AM 20 May", rule: "Must be different departments"},
-    {type: "Split Time Mismatch", desc: "MTH101 scheduled in LT4 and LT5 at different times", rule: "Split venues must be same time"}
-  ]
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departmentId, setDepartmentId] = useState("");
+  const [level, setLevel] = useState(100);
+  const [slots, setSlots] = useState<ExamSlot[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+
+  useEffect(() => {
+    getDepartments()
+      .then(setDepartments)
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load departments"));
+  }, []);
+
+  async function loadConflicts() {
+    if (!departmentId) {
+      setError("Please select a department.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const data = await getTimetable(Number(departmentId), Number(level));
+      setSlots(data);
+      setSearched(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load conflicts");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const conflicts = slots.filter((s) => s.status === "CONFLICT");
+  const scheduled = slots.filter((s) => s.status === "SCHEDULED");
+
   return (
     <Layout>
-      <h1 style={{fontSize: '24px', fontWeight: 700, marginBottom: '20px'}}>Conflicts</h1>
-      <div className="grid-4" style={{marginBottom: '20px'}}>
-        <div className="card"><div style={{color: 'var(--muted)'}}>Total Conflicts</div><div style={{fontSize: '24px', fontWeight: 700}}>{conflicts.length}</div></div>
-        <div className="card"><div style={{color: 'var(--muted)'}}>Venue Overbook</div><div style={{fontSize: '24px', fontWeight: 700}}>1</div></div>
-        <div className="card"><div style={{color: 'var(--muted)'}}>Dept Sharing Violation</div><div style={{fontSize: '24px', fontWeight: 700}}>1</div></div>
-        <div className="card"><div style={{color: 'var(--muted)'}}>Split Time Mismatch</div><div style={{fontSize: '24px', fontWeight: 700}}>1</div></div>
+      <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "20px" }}>Conflicts</h1>
+
+      <div className="card" style={{ marginBottom: "16px" }}>
+        <div className="row">
+          <div>
+            <label className="label">Department</label>
+            <select className="select" value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}>
+              <option value="">Select department</option>
+              {departments.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Level</label>
+            <select className="select" value={level} onChange={(e) => setLevel(Number(e.target.value))}>
+              <option value={100}>100</option>
+              <option value={200}>200</option>
+              <option value={300}>300</option>
+              <option value={400}>400</option>
+            </select>
+          </div>
+        </div>
+        <button className="btn" onClick={loadConflicts}>
+          Check Conflicts
+        </button>
       </div>
-      <div className="card">
-        <h2 style={{fontWeight: 700, marginBottom: '16px'}}>Detected Conflicts</h2>
-        <table><thead><tr><th>Type</th><th>Description</th><th>Rule Violated</th><th>Action</th></tr></thead><tbody>
-          {conflicts.map((c, i) => <tr key={i}>
-            <td><span className="badge badge-orange">{c.type}</span></td>
-            <td>{c.desc}</td>
-            <td>{c.rule}</td>
-            <td><button className="btn-outline">Resolve</button></td>
-          </tr>)}
-        </tbody></table>
-      </div>
+
+      {error && (
+        <div className="card" style={{ marginBottom: "16px", color: "#dc2626", background: "#fef2f2" }}>
+          {error}
+        </div>
+      )}
+
+      {searched && !loading && (
+        <>
+          <div className="grid-4" style={{ marginBottom: "20px" }}>
+            <div className="card">
+              <div style={{ color: "var(--muted)" }}>Total Exams</div>
+              <div style={{ fontSize: "24px", fontWeight: 700 }}>{slots.length}</div>
+            </div>
+            <div className="card">
+              <div style={{ color: "var(--muted)" }}>Scheduled</div>
+              <div style={{ fontSize: "24px", fontWeight: 700, color: "#16a34a" }}>{scheduled.length}</div>
+            </div>
+            <div className="card">
+              <div style={{ color: "var(--muted)" }}>Conflicts</div>
+              <div style={{ fontSize: "24px", fontWeight: 700, color: "#dc2626" }}>{conflicts.length}</div>
+            </div>
+            <div className="card">
+              <div style={{ color: "var(--muted)" }}>Resolution Rate</div>
+              <div style={{ fontSize: "24px", fontWeight: 700 }}>
+                {slots.length > 0 ? Math.round((scheduled.length / slots.length) * 100) : 0}%
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <h2 style={{ fontWeight: 700, marginBottom: "16px" }}>Detected Conflicts</h2>
+            {conflicts.length === 0 ? (
+              <p style={{ color: "var(--muted)" }}>No conflicts found — every course was scheduled successfully.</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th>Students</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {conflicts.map((c) => (
+                    <tr key={c.id}>
+                      <td>{c.course.courseCode}</td>
+                      <td>{c.course.courseName}</td>
+                      <td>{c.course.studentCount}</td>
+                      <td>
+                        <span className="badge badge-orange">{c.conflictReason}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </>
+      )}
     </Layout>
-  )
+  );
 }
