@@ -26,11 +26,11 @@ export default function Dashboard() {
   }, []);
 
   const stats = [
-    { label: "Courses", value: counts.courses, icon: BookOpen, bg: "#d1fae5" },
-    { label: "Departments", value: counts.departments, icon: Building2, bg: "#ffedd5" },
-    { label: "Lecturers", value: counts.lecturers, icon: Users, bg: "#dbeafe" },
-    { label: "Rooms", value: counts.rooms, icon: DoorOpen, bg: "#f3e8ff" },
-  ];
+  { label: "Courses", value: counts.courses, icon: BookOpen, bg: "#d1fae5", href: "/courses" },
+  { label: "Departments", value: counts.departments, icon: Building2, bg: "#ffedd5", href: "/departments" },
+  { label: "Lecturers", value: counts.lecturers, icon: Users, bg: "#dbeafe", href: "/lecturers" },
+  { label: "Rooms", value: counts.rooms, icon: DoorOpen, bg: "#f3e8ff", href: "/rooms" },
+];
 
   const quickActions = [
     { label: "Add Course", href: "/courses" },
@@ -49,21 +49,21 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid-4" style={{ marginBottom: "20px" }}>
-        {stats.map((s) => (
-          <div key={s.label} className="card stat">
-            <div className="stat-icon" style={{ background: s.bg }}>
-              <s.icon color="var(--primary)" size={20} />
-            </div>
-            <div>
-              <div style={{ color: "var(--muted)", fontSize: "14px" }}>{s.label}</div>
-              <div style={{ fontSize: "24px", fontWeight: 700 }}>
-  {loading ? <div className="skeleton" style={{ width: "40px", height: "24px" }} /> : s.value}
-</div>
-            </div>
-          </div>
-        ))}
+     <div className="grid-4" style={{ marginBottom: "20px" }}>
+  {stats.map((s) => (
+    <Link key={s.label} href={s.href} className="card stat" style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>
+      <div className="stat-icon" style={{ background: s.bg }}>
+        <s.icon color="var(--primary)" size={20} />
       </div>
+      <div>
+        <div style={{ color: "var(--muted)", fontSize: "14px" }}>{s.label}</div>
+        <div style={{ fontSize: "24px", fontWeight: 700 }}>
+          {loading ? <div className="skeleton" style={{ width: "40px", height: "24px" }} /> : s.value}
+        </div>
+      </div>
+    </Link>
+  ))}
+</div>
 
       <div className="card">
         <h2 style={{ fontWeight: 700, marginBottom: "16px" }}>Quick Actions</h2>
