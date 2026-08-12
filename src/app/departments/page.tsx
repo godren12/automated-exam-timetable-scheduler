@@ -1,6 +1,6 @@
 "use client";
 import Layout from "@/components/Layout";
-import { Plus, Pencil, Trash } from "lucide-react";
+import { Plus, Pencil, Trash, Building2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDepartments, createDepartment, updateDepartment, deleteDepartment } from "@/lib/api";
 
@@ -84,7 +84,7 @@ export default function Departments() {
   return (
     <Layout>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: 700 }}>Departments</h1>
+        <h1 className="page-title">Departments</h1>
         <button className="btn" onClick={openAddForm}>
           <Plus size={16} /> Add Department
         </button>
@@ -139,10 +139,19 @@ export default function Departments() {
       )}
 
       <div className="card">
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <table>
+      {loading ? (
+  <div>
+    <div className="skeleton skeleton-row" style={{ width: "100%" }} />
+    <div className="skeleton skeleton-row" style={{ width: "85%" }} />
+  </div>
+) : data.length === 0 ? (
+  <div className="empty-state">
+    <Building2 className="empty-state-icon" size={40} />
+    <div className="empty-state-title">No departments yet</div>
+    <div>Click &quot;Add Department&quot; above to create your first one.</div>
+  </div>
+) : (
+  <table>
             <thead>
               <tr>
                 <th>Department Name</th>

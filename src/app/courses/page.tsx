@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
-import { Plus, Pencil, Trash } from "lucide-react";
+import { Plus, Pencil, Trash, BookOpen } from "lucide-react";
 import { getCourses, createCourse, updateCourse, deleteCourse, getDepartments } from "@/lib/api";
 
 type Course = {
@@ -116,7 +116,7 @@ export default function Courses() {
   return (
     <Layout>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: 700 }}>Courses</h1>
+        <h1 className="page-title">Courses</h1>
         <button className="btn" onClick={openAddForm}>
           <Plus size={16} /> Add Course
         </button>
@@ -210,10 +210,20 @@ export default function Courses() {
       )}
 
       <div className="card">
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <table>
+       {loading ? (
+  <div>
+    <div className="skeleton skeleton-row" style={{ width: "100%" }} />
+    <div className="skeleton skeleton-row" style={{ width: "90%" }} />
+    <div className="skeleton skeleton-row" style={{ width: "95%" }} />
+  </div>
+) : courses.length === 0 ? (
+  <div className="empty-state">
+    <BookOpen className="empty-state-icon" size={40} />
+    <div className="empty-state-title">No courses yet</div>
+    <div>Click &quot;Add Course&quot; above to create your first one.</div>
+  </div>
+) : (
+  <table>
             <thead>
               <tr>
                 <th>Course Code</th>

@@ -3,6 +3,7 @@
 import Layout from "@/components/Layout";
 import { useEffect, useState } from "react";
 import { getDepartments, getTimetable } from "@/lib/api";
+import { CheckCircle2 } from "lucide-react";
 
 type Department = { id: number; name: string };
 
@@ -51,7 +52,7 @@ export default function Conflicts() {
 
   return (
     <Layout>
-      <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "20px" }}>Conflicts</h1>
+      <h1 className="page-title" style={{ marginBottom: "20px" }}>Conflicts</h1>
 
       <div className="card" style={{ marginBottom: "16px" }}>
         <div className="row">
@@ -113,8 +114,12 @@ export default function Conflicts() {
           <div className="card">
             <h2 style={{ fontWeight: 700, marginBottom: "16px" }}>Detected Conflicts</h2>
             {conflicts.length === 0 ? (
-              <p style={{ color: "var(--muted)" }}>No conflicts found — every course was scheduled successfully.</p>
-            ) : (
+  <div className="empty-state">
+    <CheckCircle2 className="empty-state-icon" size={40} color="#16a34a" />
+    <div className="empty-state-title">No conflicts found</div>
+    <div>Every course was scheduled successfully.</div>
+  </div>
+) : (
               <table>
                 <thead>
                   <tr>

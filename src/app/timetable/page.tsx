@@ -1,6 +1,6 @@
 "use client";
 import Layout from "@/components/Layout";
-import { Printer } from "lucide-react";
+import { Printer, CalendarDays } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDepartments, getTimetable } from "@/lib/api";
 
@@ -61,7 +61,7 @@ export default function Timetable() {
 
   return (
     <Layout>
-      <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "20px" }}>Timetable</h1>
+     <h1 className="page-title" style={{ marginBottom: "20px" }}>Timetable</h1>
       <div className="card" style={{ marginBottom: "16px" }}>
         <div className="row">
           <div>
@@ -102,10 +102,20 @@ export default function Timetable() {
       )}
 
       <div className="card">
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <table id="timetable-table">
+       {loading ? (
+  <div>
+    <div className="skeleton skeleton-row" style={{ width: "100%" }} />
+    <div className="skeleton skeleton-row" style={{ width: "92%" }} />
+    <div className="skeleton skeleton-row" style={{ width: "96%" }} />
+  </div>
+) : slots.length === 0 ? (
+  <div className="empty-state">
+    <CalendarDays className="empty-state-icon" size={40} />
+    <div className="empty-state-title">No timetable to show</div>
+    <div>Select a department and level above, then click &quot;View Timetable&quot;.</div>
+  </div>
+) : (
+  <table id="timetable-table">
             <thead>
               <tr>
                 <th>Course Code</th>

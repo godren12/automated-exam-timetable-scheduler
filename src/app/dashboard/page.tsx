@@ -41,7 +41,7 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "20px" }}>Dashboard</h1>
+      <h1 className="page-title" style={{ marginBottom: "20px" }}>Dashboard</h1>
 
       {error && (
         <div className="card" style={{ marginBottom: "16px", color: "#dc2626", background: "#fef2f2" }}>
@@ -57,7 +57,9 @@ export default function Dashboard() {
             </div>
             <div>
               <div style={{ color: "var(--muted)", fontSize: "14px" }}>{s.label}</div>
-              <div style={{ fontSize: "24px", fontWeight: 700 }}>{loading ? "—" : s.value}</div>
+              <div style={{ fontSize: "24px", fontWeight: 700 }}>
+  {loading ? <div className="skeleton" style={{ width: "40px", height: "24px" }} /> : s.value}
+</div>
             </div>
           </div>
         ))}

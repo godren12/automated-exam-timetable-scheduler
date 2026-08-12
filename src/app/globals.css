@@ -289,3 +289,141 @@ td {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== UI/UX Polish additions ===== */
+
+/* Smoother global transitions */
+.card, .btn, .btn-outline, .input, .select, .sidebar-item, .icon-btn, table tr {
+  transition: all 0.15s ease;
+}
+
+/* Card hover lift for clickable-feeling cards */
+.card {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Better button interactions */
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(13, 122, 79, 0.25);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-outline:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #f0fdf4;
+}
+
+/* Table row hover */
+tbody tr {
+  transition: background 0.12s ease;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Sidebar active indicator */
+.sidebar-item.active {
+  position: relative;
+}
+
+.sidebar-item.active::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: white;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Page heading consistency */
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* Empty state styling */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--muted);
+}
+
+.empty-state-icon {
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+.empty-state-title {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-row {
+  height: 20px;
+  margin-bottom: 12px;
+}
+
+/* Improved stat cards */
+.stat {
+  transition: transform 0.2s ease;
+}
+
+.card:has(.stat):hover {
+  transform: translateY(-2px);
+}
+
+/* Form field focus glow */
+.input:focus, .select:focus {
+  box-shadow: 0 0 0 3px rgba(13, 122, 79, 0.1);
+}
+
+/* Smoother badge appearance */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Subtle card border refinement */
+.card {
+  border: 1px solid #eef1f4;
+}
+
+/* Better spacing rhythm for page sections */
+.section-gap {
+  margin-bottom: 24px;
+}

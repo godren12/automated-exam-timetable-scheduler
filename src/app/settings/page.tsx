@@ -97,7 +97,7 @@ export default function Settings() {
   return (
     <Layout>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: 700 }}>Settings</h1>
+        <h1 className="page-title">Settings</h1>
         <button className="btn" onClick={() => setShowForm(!showForm)}>
           <Plus size={16} /> Add Exam Period
         </button>
@@ -151,9 +151,17 @@ export default function Settings() {
       <div className="card">
         <h2 style={{ fontWeight: 700, marginBottom: "16px" }}>Exam Periods</h2>
         {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <table>
+  <div>
+    <div className="skeleton skeleton-row" style={{ width: "100%" }} />
+    <div className="skeleton skeleton-row" style={{ width: "85%" }} />
+  </div>
+) : periods.length === 0 ? (
+  <div className="empty-state">
+    <div className="empty-state-title">No exam periods yet</div>
+    <div>Click &quot;Add Exam Period&quot; above to create your first one.</div>
+  </div>
+) : (
+  <table>
             <thead>
               <tr>
                 <th>Name</th>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
-import { Plus, Pencil, Trash } from "lucide-react";
+import { Plus, Pencil, Trash, Users } from "lucide-react";
 import { getLecturers, createLecturer, updateLecturer, deleteLecturer } from "@/lib/api";
 
 type Lecturer = {
@@ -85,7 +85,7 @@ export default function Lecturers() {
   return (
     <Layout>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: 700 }}>Lecturers</h1>
+       <h1 className="page-title">Lecturers</h1>
         <button className="btn" onClick={openAddForm}>
           <Plus size={16} /> Add Lecturer
         </button>
@@ -141,10 +141,19 @@ export default function Lecturers() {
       )}
 
       <div className="card">
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <table>
+       {loading ? (
+  <div>
+    <div className="skeleton skeleton-row" style={{ width: "100%" }} />
+    <div className="skeleton skeleton-row" style={{ width: "88%" }} />
+  </div>
+) : lecturers.length === 0 ? (
+  <div className="empty-state">
+    <Users className="empty-state-icon" size={40} />
+    <div className="empty-state-title">No lecturers yet</div>
+    <div>Click &quot;Add Lecturer&quot; above to create your first one.</div>
+  </div>
+) : (
+  <table>
             <thead>
               <tr>
                 <th>Full Name</th>

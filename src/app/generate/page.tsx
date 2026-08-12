@@ -49,10 +49,10 @@ export default function Generate() {
 
   return (
     <Layout>
-      <h1 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "8px" }}>Generate Timetable</h1>
-      <p style={{ color: "var(--muted)", marginBottom: "20px" }}>
-        Select a department, level, and exam period to generate the exam timetable.
-      </p>
+      <h1 className="page-title" style={{ marginBottom: "8px" }}>Generate Timetable</h1>
+      <p className="page-subtitle" style={{ marginBottom: "20px" }}>
+  Select a department, level, and exam period to generate the exam timetable.
+</p>
       <div className="card">
         <div className="row">
           <div>

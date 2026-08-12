@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
-import { Plus, Pencil, Trash } from "lucide-react";
+import { Plus, Pencil, Trash, DoorOpen } from "lucide-react";
 import { getRooms, createRoom, updateRoom, deleteRoom } from "@/lib/api";
 
 type Room = {
@@ -86,7 +86,7 @@ export default function Rooms() {
   return (
     <Layout>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: 700 }}>Rooms</h1>
+       <h1 className="page-title">Rooms</h1>
         <button className="btn" onClick={openAddForm}>
           <Plus size={16} /> Add Room
         </button>
@@ -141,10 +141,19 @@ export default function Rooms() {
       )}
 
       <div className="card">
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <table>
+       {loading ? (
+  <div>
+    <div className="skeleton skeleton-row" style={{ width: "100%" }} />
+    <div className="skeleton skeleton-row" style={{ width: "90%" }} />
+  </div>
+) : rooms.length === 0 ? (
+  <div className="empty-state">
+    <DoorOpen className="empty-state-icon" size={40} />
+    <div className="empty-state-title">No rooms yet</div>
+    <div>Click &quot;Add Room&quot; above to create your first one.</div>
+  </div>
+) : (
+  <table>
             <thead>
               <tr>
                 <th>Room Name</th>
