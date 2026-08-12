@@ -431,82 +431,11 @@ tbody tr:hover {
 
 .login-left {
   position: relative;
-  background: linear-gradient(135deg, #0d7a4f 0%, #0a5c3b 100%);
-  overflow: hidden;
-}
-
-.login-left::before {
-  content: '';
-  position: absolute;
-  inset: 0;
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255,255,255,0.06) 0%, transparent 50%);
-}
-
-.login-left::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-.login-left-overlay {
-  position: relative;
-  z-index: 1;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  padding: 60px;
-}
-
-.login-left-content {
-  color: white;
-  max-width: 440px;
-}
-
-.login-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 48px;
-  opacity: 0.95;
-}
-
-.login-left-content h2 {
-  font-size: 34px;
-  font-weight: 700;
-  line-height: 1.25;
-  margin-bottom: 16px;
-  letter-spacing: -0.02em;
-}
-
-.login-left-content p {
-  font-size: 16px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.85);
-  margin-bottom: 40px;
-}
-
-.login-stats {
-  display: flex;
-  gap: 40px;
-}
-
-.login-stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.login-stat-label {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+    linear-gradient(rgba(15, 35, 65, 0.72), rgba(15, 35, 65, 0.72)),
+    url('https://images.unsplash.com/photo-1596496181848-3091d4878b24?q=80&w=2069');
+  background-size: cover;
+  background-position: center;
 }
 
 .login-right {
@@ -569,4 +498,36 @@ tbody tr:hover {
   .login-left-overlay {
     padding: 32px;
   }
+}
+/* ===== Print styles ===== */
+
+@media print {
+  .sidebar,
+  .topbar,
+  .no-print {
+    display: none !important;
+  }
+
+  .main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .print-header {
+    display: block !important;
+    margin-bottom: 20px;
+  }
+}
+
+.print-header {
+  display: none;
 }

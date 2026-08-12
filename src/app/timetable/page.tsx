@@ -62,8 +62,8 @@ export default function Timetable() {
   return (
     <Layout>
      <h1 className="page-title" style={{ marginBottom: "20px" }}>Timetable</h1>
-      <div className="card" style={{ marginBottom: "16px" }}>
-        <div className="row">
+      <div className="card no-print" style={{ marginBottom: "16px" }}>
+  <div className="row">
           <div>
             <label className="label">Department</label>
             <select className="select" value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}>
@@ -102,7 +102,13 @@ export default function Timetable() {
       )}
 
       <div className="card">
-       {loading ? (
+  <div className="print-header">
+    <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "4px" }}>Exam Timetable</h2>
+    <p style={{ color: "var(--muted)", fontSize: "13px" }}>
+      Generated on {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
+    </p>
+  </div>
+  {loading ? (
   <div>
     <div className="skeleton skeleton-row" style={{ width: "100%" }} />
     <div className="skeleton skeleton-row" style={{ width: "92%" }} />
