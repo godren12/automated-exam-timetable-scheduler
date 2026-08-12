@@ -432,10 +432,65 @@ tbody tr:hover {
 .login-left {
   position: relative;
   background-image:
-    linear-gradient(rgba(15, 35, 65, 0.72), rgba(15, 35, 65, 0.72)),
-    url('https://images.unsplash.com/photo-1596496181848-3091d4878b24?q=80&w=2069');
+    linear-gradient(rgba(15, 35, 65, 0.75), rgba(15, 35, 65, 0.75)),
+    url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070');
   background-size: cover;
   background-position: center;
+}
+
+.login-left-overlay {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 60px;
+}
+
+.login-left-content {
+  color: white;
+  max-width: 440px;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 48px;
+  opacity: 0.95;
+}
+
+.login-left-content h2 {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.login-left-content p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 40px;
+}
+
+.login-stats {
+  display: flex;
+  gap: 40px;
+}
+
+.login-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.login-stat-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .login-right {
