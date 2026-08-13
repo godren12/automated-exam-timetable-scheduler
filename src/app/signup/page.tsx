@@ -40,7 +40,28 @@ const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="login-page">
-      <div className="login-left" />
+      <div className="login-left">
+  <div className="login-left-overlay">
+    <div className="login-left-content">
+      <div className="login-brand">
+        <CalendarDays size={32} />
+        <span>ExamScheduler</span>
+      </div>
+      <h2>Automated Exam Timetable Scheduler</h2>
+      <p>Generate conflict-free exam schedules in seconds — built for administrators who value precision.</p>
+      <div className="login-stats">
+        <div>
+          <div className="login-stat-value">Zero</div>
+          <div className="login-stat-label">Room double-bookings</div>
+        </div>
+        <div>
+          <div className="login-stat-value">Instant</div>
+          <div className="login-stat-label">Conflict detection</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
       <div className="login-right">
         <div className="login-box">
           <div style={{ textAlign: "center", marginBottom: "24px" }}>

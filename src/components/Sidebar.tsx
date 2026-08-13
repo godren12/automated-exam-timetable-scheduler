@@ -1,6 +1,6 @@
 "use client"
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { CalendarDays, LayoutDashboard, Zap, BookOpen, Building2, Users, DoorOpen, AlertTriangle, Settings, LogOut } from "lucide-react";
 
 const menu = [
@@ -15,17 +15,8 @@ const menu = [
   { name: "Settings", icon: Settings, href: "/settings" },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ onLogoutClick }: { onLogoutClick: () => void }) {
   const pathname = usePathname();
-  const router = useRouter();
-
-  function handleLogout() {
-  if (confirm("Are you sure you want to log out?")) {
-    localStorage.removeItem("user");
-    router.push("/");
-  }
-}
-
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -42,7 +33,7 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
-      <button className="sidebar-item logout" onClick={handleLogout}>
+      <button className="sidebar-item logout" onClick={onLogoutClick}>
         <LogOut size={18} /> Logout
       </button>
     </aside>

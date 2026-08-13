@@ -132,6 +132,11 @@ export async function getTimetable(deptId: number, level: number) {
   const res = await fetch(`${API_URL}/timetable/${deptId}/${level}`, { cache: "no-store" });
   return handleResponse(res);
 }
+
+export async function getAllTimetables() {
+  const res = await fetch(`${API_URL}/timetable/all`, { cache: "no-store" });
+  return handleResponse(res);
+}
 // Update/Delete — Courses
 export async function updateCourse(id: number, data: object) {
   const res = await fetch(`${API_URL}/courses/${id}`, {
