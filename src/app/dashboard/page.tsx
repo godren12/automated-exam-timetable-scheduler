@@ -3,7 +3,7 @@
 import Layout from "@/components/Layout";
 import { BookOpen, Building2, Users, DoorOpen, Plus, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getCourses, getDepartments, getLecturers, getRooms } from "@/lib/api";
+import { getCourses, getDepartments, getLecturers, getRooms, getAllTimetables } from "@/lib/api";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
@@ -17,20 +17,21 @@ type Course = {
 };
 
 export default function Dashboard() {
-  const [counts, setCounts] = useState({ courses: 0, departments: 0, lecturers: 0, rooms: 0 });
+  const [counts, setCounts] = useState({ courses: 0, departments: 0, lecturers: 0, rooms: 0, timetables: 0 });
   const [courses, setCourses] = useState<Course[]>([]);
   const [chartData, setChartData] = useState<{ name: string; courses: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([getCourses(), getDepartments(), getLecturers(), getRooms()])
-      .then(([coursesData, departments, lecturers, rooms]) => {
+    Promise.all([getCourses(), getDepartments(), getLecturers(), getRooms(), getAllTimetables()])
+      .then(([coursesData, departments, lecturers, rooms, timetables]) => {
         setCounts({
           courses: coursesData.length,
           departments: departments.length,
           lecturers: lecturers.length,
           rooms: rooms.length,
+          timetables: timetables.length,
         });
         setCourses(coursesData);
 
@@ -50,6 +51,7 @@ export default function Dashboard() {
     { label: "Departments", value: counts.departments, icon: Building2, bg: "#ffedd5", href: "/departments" },
     { label: "Lecturers", value: counts.lecturers, icon: Users, bg: "#dbeafe", href: "/lecturers" },
     { label: "Rooms", value: counts.rooms, icon: DoorOpen, bg: "#f3e8ff", href: "/rooms" },
+    { label: "Timetables Generated", value: counts.timetables, icon: Clock, bg: "#fee2e2", href: "/timetable" },
   ];
 
   const quickActions = [
@@ -71,7 +73,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid-4" style={{ marginBottom: "20px" }}>
+      <div className="grid-4" style={{ marginBottom: "20px", gridTemplateColumns: "repeat(5, 1fr)" }}>
         {stats.map((s) => (
           <Link key={s.label} href={s.href} className="card stat" style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>
             <div className="stat-icon" style={{ background: s.bg }}>
