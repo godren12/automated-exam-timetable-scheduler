@@ -12,7 +12,7 @@ export default function Generate() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [examPeriods, setExamPeriods] = useState<ExamPeriod[]>([]);
   const [departmentId, setDepartmentId] = useState("");
-  const [level, setLevel] = useState(100);
+  const [level, setLevel] = useState("");
   const [examPeriodId, setExamPeriodId] = useState("");
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
@@ -38,7 +38,8 @@ export default function Generate() {
 
     setGenerating(true);
     try {
-      const message = await generateTimetable(Number(departmentId), Number(level), Number(examPeriodId));
+      const levelValue = level === "" ? null : Number(level);
+      const message = await generateTimetable(Number(departmentId), levelValue, Number(examPeriodId));
       setResult(message);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate timetable");
@@ -51,7 +52,7 @@ export default function Generate() {
     <Layout>
       <h1 className="page-title" style={{ marginBottom: "8px" }}>Generate Timetable</h1>
       <p className="page-subtitle" style={{ marginBottom: "20px" }}>
-  Select a department, level, and exam period to generate the exam timetable.
+  Select a department, level (optional), and exam period to generate the exam timetable.
 </p>
       <div className="card">
         <div className="row">
@@ -67,8 +68,9 @@ export default function Generate() {
             </select>
           </div>
           <div>
-            <label className="label">Level</label>
-            <select className="select" value={level} onChange={(e) => setLevel(Number(e.target.value))}>
+            <label className="label">Level (optional)</label>
+            <select className="select" value={level} onChange={(e) => setLevel(e.target.value)}>
+              <option value="">All Levels</option>
               <option value={100}>100</option>
               <option value={200}>200</option>
               <option value={300}>300</option>
@@ -104,6 +106,7 @@ export default function Generate() {
           <div style={{ fontSize: "14px", color: "var(--muted)" }}>
             <div>✓ Ensure courses and rooms are entered for this department/level.</div>
             <div>✓ Make sure the exam period has time slots defined.</div>
+            <div>✓ Leave level as &quot;All Levels&quot; to generate the whole department at once.</div>
             <div>✓ Courses that don&apos;t fit any available room/time slot will be logged as conflicts.</div>
           </div>
         </div>

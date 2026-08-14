@@ -119,7 +119,7 @@ export async function createTimeSlot(data: {
 }
 
 // Timetable
-export async function generateTimetable(deptId: number, level: number, examPeriodId: number) {
+export async function generateTimetable(deptId: number, level: number | null, examPeriodId: number) {
   const res = await fetch(`${API_URL}/timetable/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -133,17 +133,8 @@ export async function getTimetable(deptId: number, level: number) {
   return handleResponse(res);
 }
 
-export async function getAllTimetables() {
-  const res = await fetch(`${API_URL}/timetable/all`, { cache: "no-store" });
-  return handleResponse(res);
-}
-// Update/Delete — Courses
-export async function updateCourse(id: number, data: object) {
-  const res = await fetch(`${API_URL}/courses/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+export async function getTimetableAllLevels(deptId: number) {
+  const res = await fetch(`${API_URL}/timetable/department/${deptId}`, { cache: "no-store" });
   return handleResponse(res);
 }
 

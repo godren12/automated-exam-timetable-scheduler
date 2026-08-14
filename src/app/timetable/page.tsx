@@ -2,15 +2,21 @@
 import Layout from "@/components/Layout";
 import { Printer, CalendarDays } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getDepartments, getTimetable } from "@/lib/api";
+import { getDepartments, getTimetable, getTimetableAllLevels } from "@/lib/api";
 
 type Department = { id: number; name: string };
 
 type ExamSlot = {
   id: number;
-  course: { courseCode: string; courseName: string };
+  course: {
+    courseCode: string;
+    courseName: string;
+    studentCount: number;
+    lecturer?: { name: string };
+  };
   room?: { roomName: string };
   examDateTime?: string;
+  level: number;
   status: string;
   conflictReason?: string;
 };
@@ -18,10 +24,11 @@ type ExamSlot = {
 export default function Timetable() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [departmentId, setDepartmentId] = useState("");
-  const [level, setLevel] = useState(100);
+  const [level, setLevel] = useState("");
   const [slots, setSlots] = useState<ExamSlot[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     getDepartments()
@@ -37,8 +44,11 @@ export default function Timetable() {
     setError("");
     setLoading(true);
     try {
-      const data = await getTimetable(Number(departmentId), Number(level));
+      const data = level === ""
+        ? await getTimetableAllLevels(Number(departmentId))
+        : await getTimetable(Number(departmentId), Number(level));
       setSlots(data);
+      setLoaded(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load timetable");
     } finally {
@@ -46,17 +56,63 @@ export default function Timetable() {
     }
   }
 
-  function formatDateTime(dt?: string) {
+  function formatDay(dt?: string) {
     if (!dt) return "—";
     const d = new Date(dt);
-    return d.toLocaleString(undefined, {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    return d.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+  }
+
+  function formatTime(dt?: string) {
+    if (!dt) return "—";
+    const d = new Date(dt);
+    return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+
+  const departmentName = departments.find((d) => String(d.id) === departmentId)?.name ?? "";
+  const levelLabel = level === "" ? "All Levels" : `Level ${level}`;
+
+  const levels = Array.from(new Set(slots.map((s) => s.level))).sort((a, b) => a - b);
+  const groupedByLevel = level === "";
+
+  function renderTable(rows: ExamSlot[]) {
+    return (
+      <table id="timetable-table">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Time</th>
+            <th>Course Code</th>
+            <th>Course Name</th>
+            <th>Venue</th>
+            <th>Lecturer</th>
+            <th>Enrolled</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((s) => (
+            <tr key={s.id}>
+              <td>{formatDay(s.examDateTime)}</td>
+              <td>{formatTime(s.examDateTime)}</td>
+              <td>{s.course.courseCode}</td>
+              <td>{s.course.courseName}</td>
+              <td>{s.room?.roomName ?? "—"}</td>
+              <td>{s.course.lecturer?.name ?? "—"}</td>
+              <td>{s.course.studentCount}</td>
+              <td>
+                {s.status === "SCHEDULED" ? (
+                  <span className="badge badge-green">Scheduled</span>
+                ) : (
+                  <span className="badge badge-orange" title={s.conflictReason}>
+                    Conflict
+                  </span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
   }
 
   return (
@@ -77,7 +133,8 @@ export default function Timetable() {
           </div>
           <div>
             <label className="label">Level</label>
-            <select className="select" value={level} onChange={(e) => setLevel(Number(e.target.value))}>
+            <select className="select" value={level} onChange={(e) => setLevel(e.target.value)}>
+              <option value="">All Levels</option>
               <option value={100}>100</option>
               <option value={200}>200</option>
               <option value={300}>300</option>
@@ -103,7 +160,9 @@ export default function Timetable() {
 
       <div className="card">
   <div className="print-header">
-    <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "4px" }}>Exam Timetable</h2>
+    <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "4px" }}>
+      {loaded ? `${departmentName} — ${levelLabel}` : "Exam Timetable"}
+    </h2>
     <p style={{ color: "var(--muted)", fontSize: "13px" }}>
       Generated on {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
     </p>
@@ -118,40 +177,20 @@ export default function Timetable() {
   <div className="empty-state">
     <CalendarDays className="empty-state-icon" size={40} />
     <div className="empty-state-title">No timetable to show</div>
-    <div>Select a department and level above, then click &quot;View Timetable&quot;.</div>
+    <div>Select a department above (level is optional), then click &quot;View Timetable&quot;.</div>
   </div>
+) : groupedByLevel ? (
+  levels.map((lvl) => (
+    <div key={lvl} style={{ marginBottom: "24px" }}>
+      <h3 style={{ fontSize: "15px", fontWeight: 700, margin: "16px 0 8px" }}>
+        {departmentName} — Level {lvl}
+      </h3>
+      {renderTable(slots.filter((s) => s.level === lvl))}
+    </div>
+  ))
 ) : (
-  <table id="timetable-table">
-            <thead>
-              <tr>
-                <th>Course Code</th>
-                <th>Course Name</th>
-                <th>Date & Time</th>
-                <th>Venue</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {slots.map((s) => (
-                <tr key={s.id}>
-                  <td>{s.course.courseCode}</td>
-                  <td>{s.course.courseName}</td>
-                  <td>{formatDateTime(s.examDateTime)}</td>
-                  <td>{s.room?.roomName ?? "—"}</td>
-                  <td>
-                    {s.status === "SCHEDULED" ? (
-                      <span className="badge badge-green">Scheduled</span>
-                    ) : (
-                      <span className="badge badge-orange" title={s.conflictReason}>
-                        Conflict
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+  renderTable(slots)
+)}
         <p style={{ color: "var(--muted)", fontSize: "12px", marginTop: "12px" }}>
           Showing {slots.length} entr{slots.length !== 1 ? "ies" : "y"}
         </p>
