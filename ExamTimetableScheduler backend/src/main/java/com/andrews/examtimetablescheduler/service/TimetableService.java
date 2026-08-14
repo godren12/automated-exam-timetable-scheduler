@@ -21,7 +21,7 @@ public class TimetableService {
     private final ExamSlotRepository examSlotRepo;
     private final ExamPeriodRepository examPeriodRepo;
 
-    public String generateTimetable(Long deptId, int level, Long examPeriodId) {
+    public String generateTimetable(Long deptId, Integer level, Long examPeriodId) {
         Department dept = deptRepo.findById(deptId)
                 .orElseThrow(() -> new RuntimeException("Department not found"));
 
@@ -33,22 +33,22 @@ public class TimetableService {
             throw new RuntimeException("This exam period has no time slots defined yet.");
         }
 
-        List<Course> courses = courseRepo.findByDepartmentIdAndLevel(deptId, level);
+        List<Course> courses = (level != null)
+                ? courseRepo.findByDepartmentIdAndLevel(deptId, level)
+                : courseRepo.findByDepartmentId(deptId);
+
         List<Room> rooms = roomRepo.findAll();
 
-        // Sort courses largest enrollment first (greedy: hardest to place, place first)
         courses.sort((a, b) -> Integer.compare(b.getStudentCount(), a.getStudentCount()));
-
-        // Sort rooms smallest capacity first (best-fit: use the smallest room that still fits)
         rooms.sort(Comparator.comparingInt(Room::getCapacity));
 
-        // Clear only this department+level's existing slots for this exam period
-        List<ExamSlot> existingForThisRun = examSlotRepo.findByDepartmentIdAndLevel(deptId, level).stream()
-                .filter(s -> s.getExamPeriod() != null && s.getExamPeriod().getId().equals(examPeriodId))
+        // Clear existing slots for this department (and level, if specified) within this exam period
+        List<ExamSlot> existingForThisRun = examSlotRepo.findByExamPeriodId(examPeriodId).stream()
+                .filter(s -> s.getDepartment() != null && s.getDepartment().getId().equals(deptId))
+                .filter(s -> level == null || s.getLevel() == level)
                 .collect(Collectors.toList());
         examSlotRepo.deleteAll(existingForThisRun);
 
-        // Build the list of usable exam dates (weekdays only) within the period
         List<LocalDate> examDates = new ArrayList<>();
         LocalDate cursor = period.getStartDate();
         while (!cursor.isAfter(period.getEndDate())) {
@@ -58,8 +58,6 @@ public class TimetableService {
             cursor = cursor.plusDays(1);
         }
 
-        // Preload all room bookings already in this exam period (across ALL departments)
-        // so we don't double-book a room that another department already claimed.
         Set<String> bookedRoomSlots = examSlotRepo.findByExamPeriodId(examPeriodId).stream()
                 .filter(s -> "SCHEDULED".equals(s.getStatus()) && s.getRoom() != null)
                 .map(s -> s.getRoom().getId() + "|" + s.getExamDateTime())
@@ -83,12 +81,11 @@ public class TimetableService {
                         String key = room.getId() + "|" + dateTime;
                         if (bookedRoomSlots.contains(key)) continue;
 
-                        // Found a valid room + slot combination
                         ExamSlot examSlot = new ExamSlot();
                         examSlot.setCourse(course);
                         examSlot.setRoom(room);
                         examSlot.setExamDateTime(dateTime);
-                        examSlot.setLevel(level);
+                        examSlot.setLevel(course.getLevel());
                         examSlot.setDepartment(dept);
                         examSlot.setExamPeriod(period);
                         examSlot.setStatus("SCHEDULED");
@@ -105,7 +102,7 @@ public class TimetableService {
             if (!placed) {
                 ExamSlot conflict = new ExamSlot();
                 conflict.setCourse(course);
-                conflict.setLevel(level);
+                conflict.setLevel(course.getLevel());
                 conflict.setDepartment(dept);
                 conflict.setExamPeriod(period);
                 conflict.setStatus("CONFLICT");
@@ -124,7 +121,8 @@ public class TimetableService {
 
         examSlotRepo.saveAll(results);
 
-        return String.format("Timetable generated for %s Level %d: %d scheduled, %d conflict(s).",
-                dept.getName(), level, scheduledCount, conflictCount);
+        String levelLabel = (level != null) ? "Level " + level : "All Levels";
+        return String.format("Timetable generated for %s (%s): %d scheduled, %d conflict(s).",
+                dept.getName(), levelLabel, scheduledCount, conflictCount);
     }
 }

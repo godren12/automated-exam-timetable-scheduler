@@ -1,4 +1,5 @@
 package com.andrews.examtimetablescheduler.controller;
+
 import com.andrews.examtimetablescheduler.dto.GenerateTimetableRequest;
 import com.andrews.examtimetablescheduler.model.ExamSlot;
 import com.andrews.examtimetablescheduler.repository.ExamSlotRepository;
@@ -23,6 +24,11 @@ public class TimetableController {
     @GetMapping("/{deptId}/{level}")
     public List<ExamSlot> getTimetable(@PathVariable Long deptId, @PathVariable int level) {
         return examSlotRepo.findByDepartmentIdAndLevel(deptId, level);
+    }
+
+    @GetMapping("/department/{deptId}")
+    public List<ExamSlot> getTimetableAllLevels(@PathVariable Long deptId) {
+        return examSlotRepo.findByDepartmentId(deptId);
     }
 
     @GetMapping("/all")
