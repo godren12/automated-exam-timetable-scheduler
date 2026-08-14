@@ -221,3 +221,51 @@ export async function login(email: string, password: string) {
   });
   return handleResponse(res);
 }
+
+export async function verifyLoginCode(email: string, code: string) {
+  const res = await fetch(`${API_URL}/users/verify-login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code }),
+  });
+  return handleResponse(res);
+}
+
+export async function toggle2FA(id: number, enabled: boolean) {
+  const res = await fetch(`${API_URL}/users/${id}/2fa`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled }),
+  });
+  return handleResponse(res);
+}
+
+export async function getUser(id: number) {
+  const res = await fetch(`${API_URL}/users/${id}`, { cache: "no-store" });
+  return handleResponse(res);
+}
+export async function changePassword(id: number, currentPassword: string, newPassword: string) {
+  const res = await fetch(`${API_URL}/users/${id}/password`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  return handleResponse(res);
+}
+export async function forgotPassword(email: string) {
+  const res = await fetch(`${API_URL}/users/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  return handleResponse(res);
+}
+
+export async function resetPassword(email: string, code: string, newPassword: string) {
+  const res = await fetch(`${API_URL}/users/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code, newPassword }),
+  });
+  return handleResponse(res);
+}

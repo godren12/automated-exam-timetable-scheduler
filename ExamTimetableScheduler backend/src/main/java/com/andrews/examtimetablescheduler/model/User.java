@@ -14,4 +14,9 @@ public class User {
     private String email;
 
     private String password;
+
+    private String resetCode;
+    private java.time.LocalDateTime resetCodeExpiry;
+
+    private boolean twoFactorEnabled = false;
 }

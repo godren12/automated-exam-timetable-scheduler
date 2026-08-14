@@ -17,7 +17,10 @@ const [showPassword, setShowPassword] = useState(false);
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-
+if (!email.toLowerCase().endsWith("@gmail.com")) {
+      setError("Please use a @gmail.com email address.");
+      return;
+    }
     if (password.length < 6) {
       setError("Password must be at least 6 characters.");
       return;

@@ -1,5 +1,4 @@
 package com.andrews.examtimetablescheduler.controller;
-
 import com.andrews.examtimetablescheduler.db.DBError;
 import com.andrews.examtimetablescheduler.model.User;
 import com.andrews.examtimetablescheduler.db.UserHandler;
@@ -13,10 +12,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
     private final UserHandler handler;
+    private final com.andrews.examtimetablescheduler.service.EmailService emailService;
 
-    public record SafeUser(Long id, String email) {
+    public record SafeUser(Long id, String email, boolean twoFactorEnabled) {
         static SafeUser from(User u) {
-            return new SafeUser(u.getId(), u.getEmail());
+            return new SafeUser(u.getId(), u.getEmail(), u.isTwoFactorEnabled());
         }
     }
 
@@ -27,8 +27,18 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<SafeUser> getById(@PathVariable Long id) {
+        return handler.findById(id)
+                .map(u -> ResponseEntity.ok(SafeUser.from(u)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     public ResponseEntity<?> add(@RequestBody User u) {
+        if (u.getEmail() == null || !u.getEmail().toLowerCase().endsWith("@gmail.com")) {
+            return ResponseEntity.badRequest().body("Only @gmail.com email addresses are allowed.");
+        }
         try {
             DBError status = handler.addUser(u);
             if (status == DBError.USER_EXISTS) {
@@ -40,11 +50,70 @@ public class UserController {
         }
     }
 
+    public record ChangePasswordRequest(String currentPassword, String newPassword) {}
+
+    @PutMapping("/{id}/password")
+    public ResponseEntity<?> changePassword(@PathVariable Long id, @RequestBody ChangePasswordRequest req) {
+        boolean success = handler.changePassword(id, req.currentPassword(), req.newPassword());
+        if (success) return ResponseEntity.ok().build();
+        return ResponseEntity.badRequest().body("Incorrect current password.");
+    }
+
+    @PutMapping("/{id}/2fa")
+    public ResponseEntity<?> toggle2FA(@PathVariable Long id, @RequestBody java.util.Map<String, Boolean> body) {
+        boolean enabled = Boolean.TRUE.equals(body.get("enabled"));
+        boolean success = handler.setTwoFactorEnabled(id, enabled);
+        if (success) return ResponseEntity.ok().build();
+        return ResponseEntity.notFound().build();
+    }
+
+    public record LoginResult(boolean twoFactorRequired, String email, SafeUser user) {}
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         return handler.login(req.email(), req.password())
-                .<ResponseEntity<?>>map(u -> ResponseEntity.ok(SafeUser.from(u)))
+                .<ResponseEntity<?>>map(u -> {
+                    if (u.isTwoFactorEnabled()) {
+                        handler.generateResetCode(u.getEmail());
+                        String code = handler.getResetCode(u.getEmail());
+                        emailService.sendResetCode(u.getEmail(), code);
+                        return ResponseEntity.ok(new LoginResult(true, u.getEmail(), null));
+                    }
+                    return ResponseEntity.ok(new LoginResult(false, u.getEmail(), SafeUser.from(u)));
+                })
                 .orElse(ResponseEntity.status(401).body("Invalid email or password."));
+    }
+
+    public record VerifyLoginRequest(String email, String code) {}
+
+    @PostMapping("/verify-login")
+    public ResponseEntity<?> verifyLogin(@RequestBody VerifyLoginRequest req) {
+        boolean ok = handler.verifyCode(req.email(), req.code());
+        if (!ok) return ResponseEntity.status(401).body("Invalid or expired code.");
+        return handler.find(req.email())
+                .<ResponseEntity<?>>map(u -> ResponseEntity.ok(SafeUser.from(u)))
+                .orElse(ResponseEntity.status(404).body("User not found."));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody java.util.Map<String, String> body) {
+        String email = body.get("email");
+        boolean found = handler.generateResetCode(email);
+        if (!found) {
+            return ResponseEntity.ok().body("If that email exists, a reset code has been sent.");
+        }
+        String code = handler.getResetCode(email);
+        emailService.sendResetCode(email, code);
+        return ResponseEntity.ok().body("If that email exists, a reset code has been sent.");
+    }
+
+    public record ResetPasswordRequest(String email, String code, String newPassword) {}
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest req) {
+        boolean success = handler.resetPassword(req.email(), req.code(), req.newPassword());
+        if (success) return ResponseEntity.ok().build();
+        return ResponseEntity.badRequest().body("Invalid or expired reset code.");
     }
 
     @DeleteMapping("/{id}")

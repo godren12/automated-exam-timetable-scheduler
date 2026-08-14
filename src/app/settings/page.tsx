@@ -3,13 +3,17 @@
 import Layout from "@/components/Layout";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getExamPeriods, createExamPeriod, getTimeSlotsByPeriod, createTimeSlot } from "@/lib/api";
+import { getExamPeriods, createExamPeriod, getTimeSlotsByPeriod, createTimeSlot, getUser, toggle2FA } from "@/lib/api";
+import { ShieldCheck } from "lucide-react";
 
 type ExamPeriod = { id: number; name: string; startDate: string; endDate: string };
 type TimeSlot = { id: number; label: string; startTime: string; endTime: string };
 
 export default function Settings() {
   const [periods, setPeriods] = useState<ExamPeriod[]>([]);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [savingTwoFactor, setSavingTwoFactor] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -31,9 +35,35 @@ export default function Settings() {
     }
   }
 
-  useEffect(() => {
+ useEffect(() => {
     loadPeriods();
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      try {
+        const user = JSON.parse(stored);
+        if (user.id) {
+          setUserId(user.id);
+          getUser(user.id).then((u) => setTwoFactorEnabled(u.twoFactorEnabled));
+        }
+      } catch {
+        // ignore
+      }
+    }
   }, []);
+
+  async function handleToggle2FA() {
+    if (!userId) return;
+    setSavingTwoFactor(true);
+    try {
+      const newValue = !twoFactorEnabled;
+      await toggle2FA(userId, newValue);
+      setTwoFactorEnabled(newValue);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update 2FA setting");
+    } finally {
+      setSavingTwoFactor(false);
+    }
+  }
 
   async function handleCreatePeriod(e: React.FormEvent) {
     e.preventDefault();
@@ -108,6 +138,27 @@ export default function Settings() {
           {error}
         </div>
       )}
+
+      <div className="card" style={{ marginBottom: "16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+            <ShieldCheck size={22} color="var(--primary)" style={{ marginTop: "2px" }} />
+            <div>
+              <div style={{ fontWeight: 600 }}>Two-Factor Authentication</div>
+              <div style={{ color: "var(--muted)", fontSize: "14px" }}>
+                When enabled, you&apos;ll receive a verification code by email each time you sign in.
+              </div>
+            </div>
+          </div>
+          <button
+            className={twoFactorEnabled ? "btn" : "btn-outline"}
+            onClick={handleToggle2FA}
+            disabled={savingTwoFactor}
+          >
+            {savingTwoFactor ? "Saving..." : twoFactorEnabled ? "Enabled" : "Disabled"}
+          </button>
+        </div>
+      </div>
 
       {showForm && (
         <div className="card" style={{ marginBottom: "16px" }}>
