@@ -138,6 +138,21 @@ export async function getTimetableAllLevels(deptId: number) {
   return handleResponse(res);
 }
 
+export async function getAllTimetables() {
+  const res = await fetch(`${API_URL}/timetable/all`, { cache: "no-store" });
+  return handleResponse(res);
+}
+
+// Update/Delete — Courses
+export async function updateCourse(id: number, data: object) {
+  const res = await fetch(`${API_URL}/courses/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
 export async function deleteCourse(id: number) {
   const res = await fetch(`${API_URL}/courses/${id}`, { method: "DELETE" });
   return handleResponse(res);
@@ -197,8 +212,6 @@ export async function signup(email: string, password: string) {
   return handleResponse(res);
 }
 
-
-
 // Auth
 export async function login(email: string, password: string) {
   const res = await fetch(`${API_URL}/users/login`, {
@@ -207,6 +220,4 @@ export async function login(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
   return handleResponse(res);
-
-  
 }
