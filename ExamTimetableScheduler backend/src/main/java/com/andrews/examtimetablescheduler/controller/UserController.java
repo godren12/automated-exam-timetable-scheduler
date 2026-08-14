@@ -1,7 +1,7 @@
 package com.andrews.examtimetablescheduler.controller;
 
 import com.andrews.examtimetablescheduler.db.DBError;
-import com.andrews.examtimetablescheduler.db.User;
+import com.andrews.examtimetablescheduler.model.User;
 import com.andrews.examtimetablescheduler.db.UserHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

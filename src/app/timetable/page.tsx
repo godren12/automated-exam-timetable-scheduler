@@ -117,9 +117,9 @@ export default function Timetable() {
 
   return (
     <Layout>
-     <h1 className="page-title" style={{ marginBottom: "20px" }}>Timetable</h1>
+      <h1 className="page-title no-print" style={{ marginBottom: "20px" }}>Timetable</h1>
       <div className="card no-print" style={{ marginBottom: "16px" }}>
-  <div className="row">
+        <div className="row">
           <div>
             <label className="label">Department</label>
             <select className="select" value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}>
@@ -159,39 +159,39 @@ export default function Timetable() {
       )}
 
       <div className="card">
-  <div className="print-header">
-    <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "4px" }}>
-      {loaded ? `${departmentName} — ${levelLabel}` : "Exam Timetable"}
-    </h2>
-    <p style={{ color: "var(--muted)", fontSize: "13px" }}>
-      Generated on {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
-    </p>
-  </div>
-  {loading ? (
-  <div>
-    <div className="skeleton skeleton-row" style={{ width: "100%" }} />
-    <div className="skeleton skeleton-row" style={{ width: "92%" }} />
-    <div className="skeleton skeleton-row" style={{ width: "96%" }} />
-  </div>
-) : slots.length === 0 ? (
-  <div className="empty-state">
-    <CalendarDays className="empty-state-icon" size={40} />
-    <div className="empty-state-title">No timetable to show</div>
-    <div>Select a department above (level is optional), then click &quot;View Timetable&quot;.</div>
-  </div>
-) : groupedByLevel ? (
-  levels.map((lvl) => (
-    <div key={lvl} style={{ marginBottom: "24px" }}>
-      <h3 style={{ fontSize: "15px", fontWeight: 700, margin: "16px 0 8px" }}>
-        {departmentName} — Level {lvl}
-      </h3>
-      {renderTable(slots.filter((s) => s.level === lvl))}
-    </div>
-  ))
-) : (
-  renderTable(slots)
-)}
-        <p style={{ color: "var(--muted)", fontSize: "12px", marginTop: "12px" }}>
+        <div className="print-header">
+          <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "4px" }}>
+            {loaded ? `${departmentName} — ${levelLabel}` : "Exam Timetable"}
+          </h2>
+          <p style={{ color: "var(--muted)", fontSize: "13px" }}>
+            Generated on {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
+          </p>
+        </div>
+        {loading ? (
+          <div>
+            <div className="skeleton skeleton-row" style={{ width: "100%" }} />
+            <div className="skeleton skeleton-row" style={{ width: "92%" }} />
+            <div className="skeleton skeleton-row" style={{ width: "96%" }} />
+          </div>
+        ) : slots.length === 0 ? (
+          <div className="empty-state">
+            <CalendarDays className="empty-state-icon" size={40} />
+            <div className="empty-state-title">No timetable to show</div>
+            <div>Select a department above (level is optional), then click &quot;View Timetable&quot;.</div>
+          </div>
+        ) : groupedByLevel ? (
+          levels.map((lvl) => (
+            <div key={lvl} style={{ marginBottom: "24px" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: 700, margin: "16px 0 8px" }}>
+                {departmentName} — Level {lvl}
+              </h3>
+              {renderTable(slots.filter((s) => s.level === lvl))}
+            </div>
+          ))
+        ) : (
+          renderTable(slots)
+        )}
+        <p className="no-print" style={{ color: "var(--muted)", fontSize: "12px", marginTop: "12px" }}>
           Showing {slots.length} entr{slots.length !== 1 ? "ies" : "y"}
         </p>
       </div>
