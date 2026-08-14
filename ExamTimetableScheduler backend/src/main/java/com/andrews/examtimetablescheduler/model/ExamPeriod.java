@@ -17,6 +17,9 @@ public class ExamPeriod {
     private LocalDate startDate;
     private LocalDate endDate;
 
+    @Enumerated(EnumType.STRING)
+    private ExamType examType;
+
     @OneToMany(mappedBy = "examPeriod", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<TimeSlot> timeSlots;

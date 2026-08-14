@@ -1,7 +1,8 @@
 "use client";
 
 import Layout from "@/components/Layout";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { getDepartments, getTimetable, getTimetableAllLevels, getAllTimetables } from "@/lib/api";
 import { CheckCircle2, Globe2 } from "lucide-react";
 
@@ -14,12 +15,16 @@ type ExamSlot = {
   level?: number;
   status: string;
   conflictReason?: string;
+  examPeriod?: { id: number };
 };
 
-export default function Conflicts() {
+function ConflictsContent(){
+  const searchParams = useSearchParams();
+
   const [departments, setDepartments] = useState<Department[]>([]);
   const [departmentId, setDepartmentId] = useState("");
   const [level, setLevel] = useState("");
+  const [examPeriodId, setExamPeriodId] = useState("");
   const [slots, setSlots] = useState<ExamSlot[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,18 +37,31 @@ export default function Conflicts() {
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load departments"));
   }, []);
 
-  async function loadConflicts() {
-    if (!departmentId) {
-      setError("Please select a department.");
-      return;
+  // Pick up deptId / level / examPeriodId from the URL (e.g. arriving from the Timetable page's
+  // conflicts link) and auto-run the search once.
+  useEffect(() => {
+    const qDeptId = searchParams.get("deptId");
+    const qLevel = searchParams.get("level");
+    const qExamPeriodId = searchParams.get("examPeriodId");
+
+    if (qExamPeriodId) setExamPeriodId(qExamPeriodId);
+
+    if (qDeptId) {
+      setDepartmentId(qDeptId);
+      setLevel(qLevel ?? "");
+      runConflictsQuery(qDeptId, qLevel ?? "");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  async function runConflictsQuery(deptId: string, lvl: string) {
     setError("");
     setLoading(true);
     setViewingAll(false);
     try {
-      const data = level === ""
-        ? await getTimetableAllLevels(Number(departmentId))
-        : await getTimetable(Number(departmentId), Number(level));
+      const data = lvl === ""
+        ? await getTimetableAllLevels(Number(deptId))
+        : await getTimetable(Number(deptId), Number(lvl));
       setSlots(data);
       setSearched(true);
     } catch (err) {
@@ -51,6 +69,14 @@ export default function Conflicts() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function loadConflicts() {
+    if (!departmentId) {
+      setError("Please select a department.");
+      return;
+    }
+    await runConflictsQuery(departmentId, level);
   }
 
   async function loadAllConflicts() {
@@ -68,8 +94,14 @@ export default function Conflicts() {
     }
   }
 
-  const conflicts = slots.filter((s) => s.status === "CONFLICT");
-  const scheduled = slots.filter((s) => s.status === "SCHEDULED");
+  // Extra filter for an exam-period query param, useful mainly in the "view all" case
+  // where slots span multiple periods.
+  const periodFiltered = examPeriodId
+    ? slots.filter((s) => !s.examPeriod || String(s.examPeriod.id) === examPeriodId)
+    : slots;
+
+  const conflicts = periodFiltered.filter((s) => s.status === "CONFLICT");
+  const scheduled = periodFiltered.filter((s) => s.status === "SCHEDULED");
 
   return (
     <Layout>
@@ -129,7 +161,7 @@ export default function Conflicts() {
             <div className="grid-4" style={{ marginBottom: "20px" }}>
               <div className="card">
                 <div style={{ color: "var(--muted)" }}>Total Exams</div>
-                <div style={{ fontSize: "24px", fontWeight: 700 }}>{slots.length}</div>
+                <div style={{ fontSize: "24px", fontWeight: 700 }}>{periodFiltered.length}</div>
               </div>
               <div className="card">
                 <div style={{ color: "var(--muted)" }}>Scheduled</div>
@@ -142,7 +174,7 @@ export default function Conflicts() {
               <div className="card">
                 <div style={{ color: "var(--muted)" }}>Resolution Rate</div>
                 <div style={{ fontSize: "24px", fontWeight: 700 }}>
-                  {slots.length > 0 ? Math.round((scheduled.length / slots.length) * 100) : 0}%
+                  {periodFiltered.length > 0 ? Math.round((scheduled.length / periodFiltered.length) * 100) : 0}%
                 </div>
               </div>
             </div>
@@ -190,5 +222,13 @@ export default function Conflicts() {
         )
       )}
     </Layout>
+  );
+}
+
+export default function Conflicts() {
+  return (
+    <Suspense fallback={<div>Loading conflicts...</div>}>
+      <ConflictsContent />
+    </Suspense>
   );
 }

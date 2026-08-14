@@ -6,7 +6,22 @@ import { useEffect, useState } from "react";
 import { getExamPeriods, createExamPeriod, getTimeSlotsByPeriod, createTimeSlot, getUser, toggle2FA } from "@/lib/api";
 import { ShieldCheck } from "lucide-react";
 
-type ExamPeriod = { id: number; name: string; startDate: string; endDate: string };
+type ExamTypeValue = "FIRST_SEM_MID" | "FIRST_SEM_END" | "SECOND_SEM_MID" | "SECOND_SEM_END";
+
+const EXAM_TYPE_LABELS: Record<ExamTypeValue, string> = {
+  FIRST_SEM_MID: "First Semester — Mid-Semester Exams",
+  FIRST_SEM_END: "First Semester — End of Semester Exams",
+  SECOND_SEM_MID: "Second Semester — Mid-Semester Exams",
+  SECOND_SEM_END: "Second Semester — End of Semester Exams",
+};
+
+type ExamPeriod = {
+  id: number;
+  name: string;
+  startDate: string;
+  endDate: string;
+  examType?: ExamTypeValue | null;
+};
 type TimeSlot = { id: number; label: string; startTime: string; endTime: string };
 
 export default function Settings() {
@@ -17,7 +32,12 @@ export default function Settings() {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: "", startDate: "", endDate: "" });
+  const [form, setForm] = useState<{ name: string; startDate: string; endDate: string; examType: ExamTypeValue | "" }>({
+    name: "",
+    startDate: "",
+    endDate: "",
+    examType: "",
+  });
 
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [slotsByPeriod, setSlotsByPeriod] = useState<Record<number, TimeSlot[]>>({});
@@ -69,14 +89,14 @@ export default function Settings() {
     e.preventDefault();
     setError("");
 
-    if (!form.name || !form.startDate || !form.endDate) {
-      setError("Please fill in all fields.");
+    if (!form.name || !form.startDate || !form.endDate || !form.examType) {
+      setError("Please fill in all fields, including exam type.");
       return;
     }
 
     try {
       await createExamPeriod(form);
-      setForm({ name: "", startDate: "", endDate: "" });
+      setForm({ name: "", startDate: "", endDate: "", examType: "" });
       setShowForm(false);
       loadPeriods();
     } catch (err) {
@@ -192,6 +212,21 @@ export default function Settings() {
                 />
               </div>
             </div>
+            <div className="form-group">
+              <label className="label">Exam Type</label>
+              <select
+                className="input"
+                value={form.examType}
+                onChange={(e) => setForm({ ...form, examType: e.target.value as ExamTypeValue })}
+              >
+                <option value="">Select exam type...</option>
+                {Object.entries(EXAM_TYPE_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <button className="btn" type="submit">
               Save Exam Period
             </button>
@@ -218,6 +253,7 @@ export default function Settings() {
                 <th>Name</th>
                 <th>Start Date</th>
                 <th>End Date</th>
+                <th>Exam Type</th>
                 <th>Time Slots</th>
               </tr>
             </thead>
@@ -229,6 +265,13 @@ export default function Settings() {
                     <td>{p.startDate}</td>
                     <td>{p.endDate}</td>
                     <td>
+                      {p.examType ? (
+                        EXAM_TYPE_LABELS[p.examType]
+                      ) : (
+                        <span style={{ color: "var(--muted)" }}>Not set</span>
+                      )}
+                    </td>
+                    <td>
                       <button className="btn-outline" onClick={() => toggleExpand(p.id)}>
                         {expandedId === p.id ? "Hide" : "Manage"} Time Slots
                       </button>
@@ -236,7 +279,7 @@ export default function Settings() {
                   </tr>
                   {expandedId === p.id && (
                     <tr>
-                      <td colSpan={4} style={{ background: "var(--bg)" }}>
+                      <td colSpan={5} style={{ background: "var(--bg)" }}>
                         <div style={{ padding: "16px" }}>
                           <h3 style={{ fontWeight: 600, marginBottom: "12px" }}>Time Slots</h3>
                           {(slotsByPeriod[p.id] ?? []).length === 0 ? (

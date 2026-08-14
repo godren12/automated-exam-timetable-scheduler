@@ -32,4 +32,7 @@ public class ExamSlot {
 
     private String status;
     private String conflictReason;
+
+    private String groupId;      // links rows split across multiple rooms for one course sitting
+    private Integer seatsInRoom; // how many of this course's students are in THIS room
 }

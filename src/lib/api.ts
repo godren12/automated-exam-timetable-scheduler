@@ -89,6 +89,7 @@ export async function createExamPeriod(data: {
   name: string;
   startDate: string;
   endDate: string;
+  examType: string;
 }) {
   const res = await fetch(`${API_URL}/exam-periods`, {
     method: "POST",
@@ -119,11 +120,16 @@ export async function createTimeSlot(data: {
 }
 
 // Timetable
-export async function generateTimetable(deptId: number, level: number | null, examPeriodId: number) {
+export async function generateTimetable(data: {
+  scope: "DEPARTMENT" | "COLLEGE";
+  deptId: number | null;
+  level: number | null;
+  examPeriodId: number;
+}) {
   const res = await fetch(`${API_URL}/timetable/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ deptId, level, examPeriodId }),
+    body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
@@ -266,6 +272,14 @@ export async function resetPassword(email: string, code: string, newPassword: st
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, code, newPassword }),
+  });
+  return handleResponse(res);
+}
+export async function googleLogin(idToken: string) {
+  const res = await fetch(`${API_URL}/users/google-login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idToken }),
   });
   return handleResponse(res);
 }

@@ -16,9 +16,9 @@ public class TimetableController {
     private final TimetableService timetableService;
     private final ExamSlotRepository examSlotRepo;
 
-    @PostMapping("/generate")
+   @PostMapping("/generate")
     public String generate(@RequestBody GenerateTimetableRequest req) {
-        return timetableService.generateTimetable(req.getDeptId(), req.getLevel(), req.getExamPeriodId());
+        return timetableService.generateTimetable(req);
     }
 
     @GetMapping("/{deptId}/{level}")

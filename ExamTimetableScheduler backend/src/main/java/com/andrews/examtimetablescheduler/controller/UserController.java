@@ -58,6 +58,29 @@ public class UserController {
         if (success) return ResponseEntity.ok().build();
         return ResponseEntity.badRequest().body("Incorrect current password.");
     }
+    @PostMapping("/google-login")
+    public ResponseEntity<?> googleLogin(@RequestBody java.util.Map<String, String> body) {
+        String idToken = body.get("idToken");
+        try {
+            String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken;
+            org.springframework.web.client.RestTemplate rt = new org.springframework.web.client.RestTemplate();
+            java.util.Map<?, ?> result = rt.getForObject(url, java.util.Map.class);
+            String email = (String) result.get("email");
+            if (email == null || !email.toLowerCase().endsWith("@gmail.com")) {
+                return ResponseEntity.badRequest().body("Only @gmail.com accounts are allowed.");
+            }
+            User u = handler.find(email).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setEmail(email);
+                newUser.setPassword(java.util.UUID.randomUUID().toString());
+                handler.addUser(newUser);
+                return handler.find(email).get();
+            });
+            return ResponseEntity.ok(SafeUser.from(u));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Google sign-in failed.");
+        }
+    }
 
     @PutMapping("/{id}/2fa")
     public ResponseEntity<?> toggle2FA(@PathVariable Long id, @RequestBody java.util.Map<String, Boolean> body) {

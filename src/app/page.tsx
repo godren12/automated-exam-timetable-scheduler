@@ -4,6 +4,13 @@ import { useRouter } from "next/navigation";
 import { CalendarDays, Mail, Lock, Eye, EyeOff, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { login, verifyLoginCode } from "@/lib/api";
+import Script from "next/script";
+import { googleLogin } from "@/lib/api";
+declare global{
+  interface Window{
+    google?: any;
+  }
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -15,7 +22,7 @@ export default function LoginPage() {
   const [step, setStep] = useState<"credentials" | "verify">("credentials");
   const router = useRouter();
 
-  async function handleLogin(e: React.FormEvent) {
+async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setSubmitting(true);
@@ -34,6 +41,23 @@ export default function LoginPage() {
       setSubmitting(false);
     }
   }
+
+  function handleGoogleLogin() {
+    window.google.accounts.id.initialize({
+      client_id: "545691165442-sdekkpsn7jtg5ighq2bh2f6kfr6mfnhm.apps.googleusercontent.com",
+      callback: async (response: { credential: string }) => {
+        try {
+          const user = await googleLogin(response.credential);
+          localStorage.setItem("user", JSON.stringify(user));
+          router.push("/dashboard");
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Google sign-in failed.");
+        }
+      },
+    });
+    window.google.accounts.id.prompt();
+  }
+  
 
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
@@ -77,6 +101,7 @@ export default function LoginPage() {
       </div>
       <div className="login-right">
         <div className="login-box">
+          <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
           <div style={{ textAlign: "center", marginBottom: "24px" }}>
             <CalendarDays size={40} color="var(--primary)" />
             <h1 style={{ fontSize: "24px", marginTop: "10px" }}>
@@ -163,6 +188,9 @@ export default function LoginPage() {
           <p style={{ textAlign: "center", fontSize: "14px", color: "var(--muted)" }}>
             Don&apos;t have an account? <Link href="/signup" style={{ color: "var(--primary)", fontWeight: 600 }}>Sign up</Link>
           </p>
+          <button type="button" className="btn-outline" style={{ width: "100%", justifyContent: "center", marginTop: "12px" }} onClick={handleGoogleLogin}>
+            Sign in with Google
+          </button>
         </div>
       </div>
     </div>
